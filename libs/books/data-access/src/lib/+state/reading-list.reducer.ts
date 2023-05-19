@@ -9,6 +9,8 @@ export const READING_LIST_FEATURE_KEY = 'readingList';
 export interface State extends EntityState<ReadingListItem> {
   loaded: boolean;
   error: null | string;
+  isRemovedFromReadingListSuccess:boolean;
+  isAddedToReadingListSuccess:boolean;
 }
 
 export interface ReadingListPartialState {
@@ -23,7 +25,9 @@ export const readingListAdapter: EntityAdapter<ReadingListItem> = createEntityAd
 
 export const initialState: State = readingListAdapter.getInitialState({
   loaded: false,
-  error: null
+  error: null,
+  isRemovedFromReadingListSuccess:false,
+  isAddedToReadingListSuccess:false
 });
 
 const readingListReducer = createReducer(
@@ -32,7 +36,9 @@ const readingListReducer = createReducer(
     return {
       ...state,
       loaded: false,
-      error: null
+      error: null,
+      isRemovedFromReadingListSuccess:false,
+      isAddedToReadingListSuccess:false
     };
   }),
   on(ReadingListActions.loadReadingListSuccess, (state, action) => {
@@ -47,12 +53,31 @@ const readingListReducer = createReducer(
       error: action.error
     };
   }),
-  on(ReadingListActions.addToReadingList, (state, action) =>
-    readingListAdapter.addOne({ bookId: action.book.id, ...action.book }, state)
-  ),
-  on(ReadingListActions.removeFromReadingList, (state, action) =>
-    readingListAdapter.removeOne(action.item.bookId, state)
-  )
+  on(ReadingListActions.confirmedAddToReadingList, (state, action) =>{
+    return  readingListAdapter.addOne({ bookId: action.book.id, ...action.book }, {
+      ...state,
+      isAddedToReadingListSuccess:true
+    }) 
+  }),
+  on(ReadingListActions.failedAddToReadingList, (state, action) =>{
+    return {
+      ...state,
+      isAddedToReadingListSuccess:false
+    };
+  }),
+  on(ReadingListActions.confirmedRemoveFromReadingList, (state, action) =>{
+    return readingListAdapter.removeOne(action.item.bookId, {
+      ...state,
+      isRemovedFromReadingListSuccess:true
+    });
+  }),
+  on(ReadingListActions.failedRemoveFromReadingList, (state, action) =>{
+    return {
+      ...state,
+      isRemovedFromReadingListSuccess:false
+    };
+  })
+  
 );
 
 export function reducer(state: State | undefined, action: Action) {

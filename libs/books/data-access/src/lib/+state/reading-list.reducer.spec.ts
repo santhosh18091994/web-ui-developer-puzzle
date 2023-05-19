@@ -51,6 +51,26 @@ describe('Books Reducer', () => {
 
       expect(result.ids).toEqual(['A', 'B']);
     });
+
+    it('confirmedAddToReadingList should undo addition to reading list', () => {
+      const action = ReadingListActions.confirmedAddToReadingList({
+        book: createBook('C')
+      });
+
+      const result: State = reducer(state, action);
+
+      expect(result.isAddedToReadingListSuccess).toEqual(true);
+    });
+
+    it('confirmedRemoveFromReadingList should remove from reading list', () => {
+      const action = ReadingListActions.confirmedRemoveFromReadingList({
+        item: createReadingListItem('C')
+      });
+
+      const result: State = reducer(state, action);
+
+      expect(result.isRemovedFromReadingListSuccess).toEqual(true);
+    });
   });
 
   describe('unknown action', () => {

@@ -29,11 +29,15 @@
     min-width: 0;
     margin-right: $spacing-xxs;
     &--title,
-    &--author {
+    &--author,&--finished {
       text-overflow: ellipsis;
       overflow: hidden;
       white-space: nowrap;
     }
+  }
+  &--actions {
+    flex-direction: row !important;
+    gap: 5px;
   }
 }
 

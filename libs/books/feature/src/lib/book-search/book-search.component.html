@@ -29,6 +29,9 @@
           <div>
             <strong>Published:</strong> {{ formatDate(b.publishedDate) }}
           </div>
+          <div *ngIf="b.finishedDate">
+            <strong>Finished on:</strong> {{ b.finishedDate | date: 'MM/dd/yyyy' }}
+          </div>
           <p [innerHTML]="b.description"></p>
           <div>
             <button
@@ -38,7 +41,7 @@
               [disabled]="b.isAdded"
               aria-label="Want to Read"
             >
-              Want to Read
+            {{(b.finished?'Finished':'Want to Read')}}
             </button>
           </div>
         </div>

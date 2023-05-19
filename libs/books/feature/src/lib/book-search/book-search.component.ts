@@ -1,30 +1,38 @@
-import { Component, OnInit } from '@angular/core';
+import { Component, OnInit, OnDestroy} from '@angular/core';
 import { Store } from '@ngrx/store';
+import { Book, ReadingListItem } from '@tmo/shared/models';
+import { MatSnackBar } from '@angular/material/snack-bar';
+import { takeUntil } from 'rxjs/operators';
+import { Subject } from 'rxjs';
 import {
   addToReadingList,
   clearSearch,
   getAllBooks,
   ReadingListBook,
-  searchBooks
+  searchBooks,
+  getReadingList,
+  removeFromReadingList
 } from '@tmo/books/data-access';
 import { FormBuilder } from '@angular/forms';
-import { Book } from '@tmo/shared/models';
 
 @Component({
   selector: 'tmo-book-search',
   templateUrl: './book-search.component.html',
   styleUrls: ['./book-search.component.scss']
 })
-export class BookSearchComponent implements OnInit {
+export class BookSearchComponent implements OnInit, OnDestroy {
   books: ReadingListBook[];
 
   searchForm = this.fb.group({
     term: ''
   });
 
+  public componentDestroyed$ = new Subject();
+
   constructor(
     private readonly store: Store,
-    private readonly fb: FormBuilder
+    private readonly fb: FormBuilder,
+    private snackBar: MatSnackBar
   ) {}
 
   get searchTerm(): string {
@@ -44,6 +52,18 @@ export class BookSearchComponent implements OnInit {
   }
 
   addBookToReadingList(book: Book) {
+    const bookAddedSnackbar = this.snackBar.open('Book Added into Reading List', 'Undo',{
+      duration:2000
+    });
+    bookAddedSnackbar.onAction().pipe(takeUntil(this.componentDestroyed$)).subscribe(() => {
+      let item:ReadingListItem ;
+      this.store.select(getReadingList).pipe(takeUntil(this.componentDestroyed$)).subscribe(books => {
+        item = books.find((ele)=>{
+          return ele.bookId===book.id
+        });
+      });
+      this.store.dispatch(removeFromReadingList({ item }));
+    });
     this.store.dispatch(addToReadingList({ book }));
   }
 
@@ -58,5 +78,10 @@ export class BookSearchComponent implements OnInit {
     } else {
       this.store.dispatch(clearSearch());
     }
+  }
+
+  ngOnDestroy(){
+    this.componentDestroyed$.next(true);
+    this.componentDestroyed$.unsubscribe();
   }
 }
